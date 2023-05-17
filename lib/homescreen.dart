@@ -1,8 +1,10 @@
 import 'package:digitalwallet/gridicons.dart';
 import 'package:digitalwallet/navbar/bottomnavbar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/placeholder.dart';
+import 'package:local_auth/local_auth.dart';
 
 import 'package:qrscan/qrscan.dart' as scanner;
 
@@ -14,6 +16,20 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late final LocalAuthentication auth;
+  bool _supportState = false;
+
+  @override
+  void initState() {
+    super.initState();
+    auth = LocalAuthentication();
+    auth.isDeviceSupported().then((isSupported) {
+      setState(() {
+        _supportState = isSupported;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     // Obtain the screen size
@@ -55,9 +71,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: EdgeInsets.symmetric(
                       horizontal: screenSize.width * 0.03,
                       vertical: screenSize.height * 0.01),
-                  child: const CircleAvatar(
-                    radius: 25,
-                    backgroundImage: AssetImage('assets/images/user.png'),
+                  child: GestureDetector(
+                    onTap: _authenticate,
+                    child: const CircleAvatar(
+                      radius: 25,
+                      backgroundImage: AssetImage('assets/images/user.png'),
+                    ),
                   ),
                 ),
                 Padding(
@@ -284,5 +303,20 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+
+// biometric
+  Future<void> _authenticate() async {
+    try {
+      bool authenticated = await auth.authenticate(
+          localizedReason: "Verify your identity to proceed",
+          options: const AuthenticationOptions(
+            stickyAuth: true,
+            biometricOnly: true,
+          ));
+      print("Authenticated: $authenticated");
+    } on PlatformException catch (e) {
+      print(e);
+    }
   }
 }

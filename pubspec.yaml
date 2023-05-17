@@ -38,6 +38,7 @@ dependencies:
   animated_bottom_navigation_bar: ^1.2.0
   
   qrscan: ^0.3.3
+  local_auth: ^2.1.6
   
   
 
